@@ -1,0 +1,29 @@
+@footer-height: 60px;
+#root {
+  position: relative;
+  min-height: 100vh;
+}
+
+.bid-q-footer-container {
+  width: 100%;
+  height: @footer-height;
+  margin-top: 20px;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: white;
+  box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.1);
+
+  position: absolute;
+  top: 100%;
+}
+
+.bid-q-footer-container-inner {
+  color: rgb(156 163 175);
+  text-align: center;
+  user-select: none;
+  font-size: 14px;
+  line-height: 20px;
+}

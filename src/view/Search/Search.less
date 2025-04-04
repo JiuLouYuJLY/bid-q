@@ -1,0 +1,103 @@
+.bid-q-search-container {
+  width: 90vw;
+  max-width: 1800px;
+  margin: 50px auto 20px;
+  border-radius: 10px;
+}
+
+.bid-q-search-header {
+  display: flex;
+  align-items: center;
+  padding-bottom: 8px;
+
+  .bid-q-search-title {
+    font-size: 30px;
+    line-height: 36px;
+    margin-left: 8px;
+    font-weight: 500;
+    color: #1f2937;
+  }
+}
+
+.bid-q-search-list {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  padding: 8px 4px 16px;
+  margin-bottom: 20px;
+  gap: 16px;
+  overflow: auto;
+}
+
+.bid-q-search-list-item {
+  box-shadow:
+          3px 3px 3px 0 mix(#1A73E8, transparent, 15%),
+            -3px -3px 6px 0 mix(#1A73E8, transparent, 15%);
+  border-radius: 8px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  text-decoration: none;
+
+  transition: 0.3s;
+
+  &:hover {
+    transform: scale(1.02);
+    box-shadow: 3px 3px 3px 0 mix(#1A73E8, transparent, 45%),
+      -3px -3px 6px 0 mix(#1A73E8, transparent, 45%);
+  }
+}
+
+.bid-q-search-list-item-img {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.bid-q-search-list-item-info {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  flex: 1 1 auto;
+}
+
+.bid-q-search-list-item-info-title {
+  font-size: 16px;
+  font-weight: 500;
+  color: #333;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  padding: 8px 12px 4px;
+}
+
+.bid-q-search-list-item-info-price {
+  color: #333;
+  font-size: 16px;
+  font-weight: 500;
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  line-height: 1;
+}
+
+.bid-q-search-list-item-info-time {
+  padding: 0 12px 12px;
+  color: #333;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.bid-q-search-list-empty {
+  text-align: center;
+  color:#9ca3af;
+  margin: 50px auto;
+}
+
+.bid-q-search-pagination {
+  display: flex;
+  justify-content: center;
+}

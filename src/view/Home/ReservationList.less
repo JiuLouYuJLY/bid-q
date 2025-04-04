@@ -1,0 +1,99 @@
+.bid-q-home-reservation-container {
+  margin-top: 40px;
+}
+
+.bid-q-home-reservation-header {
+  display: flex;
+  align-items: center;
+  padding-bottom: 8px;
+
+  .bid-q-home-reservation-title {
+    font-size: 30px;
+    line-height: 36px;
+    margin-left: 8px;
+    font-weight: 500;
+    color: #1f2937;
+  }
+}
+
+.bid-q-home-reservation-list {
+  display: flex;
+  padding: 8px 4px 16px;
+  margin-bottom: 48px;
+  gap: 30px;
+  overflow: auto;
+}
+
+.bid-q-home-reservation-list-item {
+  box-shadow: 3px 3px 3px 0 mix(#1A73E8, transparent, 15%),
+    -3px -3px 6px 0 mix(#1A73E8, transparent, 15%);
+  border-radius: 8px;
+  overflow: hidden;
+  flex: 0 0 288px;
+  text-decoration: none;
+
+  transition: 0.3s;
+
+  &:hover {
+    box-shadow: 3px 3px 3px 0 mix(#1A73E8, transparent, 45%),
+      -3px -3px 6px 0 mix(#1A73E8, transparent, 45%);
+    transform: scale(1.02);
+  }
+
+  .bid-q-home-reservation-list-item-img {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    overflow: hidden;
+    object-fit: cover;
+    z-index: 0;
+  }
+}
+
+.big-q-home-reservation-list-item-cover-background {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 50%;
+  background: linear-gradient(180deg,
+  rgba(0, 0, 0, 0),
+  rgba(0, 0, 0, 0.00386607) 8.07%,
+  rgba(0, 0, 0, 0.0152486) 15.54%,
+  rgba(0, 0, 0, 0.033824) 22.5%,
+  rgba(0, 0, 0, 0.0592687) 29.04%,
+  rgba(0, 0, 0, 0.0912593) 35.26%,
+  rgba(0, 0, 0, 0.129472) 41.25%,
+  rgba(0, 0, 0, 0.173583) 47.1%,
+  rgba(0, 0, 0, 0.22327) 52.9%,
+  rgba(0, 0, 0, 0.278208) 58.75%,
+  rgba(0, 0, 0, 0.338074) 64.74%,
+  rgba(0, 0, 0, 0.402545) 70.96%,
+  rgba(0, 0, 0, 0.471296) 77.5%,
+  rgba(0, 0, 0, 0.544005) 84.46%,
+  rgba(0, 0, 0, 0.620347) 91.93%,
+  rgba(0, 0, 0, 0.7));
+}
+
+.bid-q-home-reservation-list-item-time {
+  position: absolute;
+  left: 12px;
+  bottom: 8px;
+  color: white;
+  font-size: 16px;
+  line-height: 24px;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+}
+
+.bid-q-home-reservation-list-item-title {
+  font-weight: 500;
+  font-size: 16px;
+  color: #333;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  padding: 8px 12px 4px;
+}
