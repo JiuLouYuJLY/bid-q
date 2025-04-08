@@ -4,6 +4,14 @@ import {Dropdown, Input} from "tdesign-react";
 import {useEffect, useState} from "react";
 import {Avatar} from "tdesign-react/lib";
 import {LoginIcon, LogoutIcon, UserIcon} from "tdesign-icons-react";
+import {getUserInfo, isUserLogin} from "../../api/user.ts";
+
+export interface userInfoProps {
+  uid: number | null;
+  name: string;
+  avatar: string;
+  lotName: string;
+}
 
 const Header = () => {
   const navigate = useNavigate();
@@ -58,23 +66,41 @@ const Header = () => {
 
 const UserSection = () => {
   const navigate = useNavigate();
-  const defaultAvatar = 'https://tdesign.gtimg.com/site/avatar.jpg';
-  const userInfo = {
-    name: 'Tom',
-    avatar: 'https://tdesign.gtimg.com/site/avatar.jpg',
-  };
+  const defaultAvatar = 'https://ss0.bdstatic.com/70cFvXSh_Q1YnxGkpoWK1HF6hhy/it/u=2279408239,3825398873&fm=253&gp=0.jpg';
+  const [userInfo, setUserInfo] = useState<userInfoProps>({
+    uid: null,
+    name: '',
+    avatar: '',
+    lotName: '',
+  });
+
+  useEffect(() => {
+    if (isUserLogin()) {
+      getUserInfo().then((res) => {
+        if (res.data.code === 200) {
+          setUserInfo({
+            uid: res.data.data.uid,
+            name: res.data.data.name,
+            avatar: res.data.data.avatar,
+            lotName: res.data.data.lotName,
+          });
+        }
+      });
+    }
+  }, []);
 
   return (
     <>
       {
-        userInfo ? (
+        userInfo.uid ? (
           <Dropdown
             placement='bottom'
             popupProps={{
               delay: 100,
             }}
             panelTopContent={
-              <div style={{display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+              <div style={{display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column'}}>
+                <div style={{fontSize: '16px'}}>uid: <span style={{fontWeight: 'bold'}}>{userInfo.uid}</span></div>
                 <div style={{fontSize: '16px', fontWeight: 'bold'}}>{userInfo.name}</div>
               </div>
             }

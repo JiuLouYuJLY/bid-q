@@ -10,7 +10,6 @@ import RecommendList from "./RecommendList.tsx";
 
 const Home = () => {
   useTitle("首页");
-  // const {SwiperItem} = Swiper;
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [swiperList, _setSwiperList] = useState([
     {
