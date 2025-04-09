@@ -29,7 +29,7 @@ const RecommendList = memo((props: RecommendListProps) => {
               img: item.img,
               title: item.title,
               link: `/auction/${item.aid}`,
-              time: item.time,
+              time: item.time.replace('T', ' '),
               price: item.price
             }
           });
