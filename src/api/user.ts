@@ -10,3 +10,15 @@ export const getUserInfo = () => {
     method: "get",
   })
 }
+
+export const getReservationList = (userId: number, page: number, pageSize: number) => {
+  return instance({
+    url: "/reservations",
+    method: "get",
+    params: {
+      userId: userId,
+      page: page,
+      size: pageSize
+    }
+  })
+}

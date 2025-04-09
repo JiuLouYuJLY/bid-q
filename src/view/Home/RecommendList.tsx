@@ -1,58 +1,45 @@
-import {memo, useState} from "react";
+import {memo, useState, useEffect} from "react";
 
 import './RecommendList.less';
 import {Image} from "tdesign-react";
+import {getRecommendList} from "../../api/auction.ts";
+import {AuctionItem} from "./Home.tsx";
 
 interface RecommendListProps {
   type: string
 }
 
+interface RecommendItem {
+  img: string;
+  title: string;
+  link: string;
+  time: string;
+  price: number;
+}
+
 const RecommendList = memo((props: RecommendListProps) => {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [recommendList, _setRecommendList] = useState([
-    {
-      img: "https://cbu01.alicdn.com/img/ibank/O1CN01C1QpSS1OAcEsJWlen_!!3933321665-0-cib.jpg?__r__=1667037502452",
-      title: "ikun手办小黄鸡",
-      link: "/",
-      time: "2022-07-01 00:00:00",
-      price: "100"
-    },
-    {
-      img: "https://cbu01.alicdn.com/img/ibank/O1CN01ptO0V41qLQpSRGu1z_!!2212842345479-0-cib.jpg",
-      title: "Q版77",
-      link: "/",
-      time: "2022-07-01 00:00:00",
-      price: "200"
-    },
-    {
-      img: "https://cbu01.alicdn.com/img/ibank/O1CN01DZiQkj1lv5bVVDM9w_!!4222024880-0-cib.jpg",
-      title: "原神雷电将军",
-      link: "/",
-      time: "2022-07-01 00:00:00",
-      price: "300"
-    },
-    {
-      img: "https://cbu01.alicdn.com/img/ibank/O1CN01C1QpSS1OAcEsJWlen_!!3933321665-0-cib.jpg?__r__=1667037502452",
-      title: "ikun手办小黄鸡",
-      link: "/",
-      time: "2022-07-01 00:00:00",
-      price: "400"
-    },
-    {
-      img: "https://cbu01.alicdn.com/img/ibank/O1CN01ptO0V41qLQpSRGu1z_!!2212842345479-0-cib.jpg",
-      title: "Q版77",
-      link: "/",
-      time: "2022-07-01 00:00:00",
-      price: "500"
-    },
-    {
-      img: "https://cbu01.alicdn.com/img/ibank/O1CN01DZiQkj1lv5bVVDM9w_!!4222024880-0-cib.jpg",
-      title: "原神雷电将军",
-      link: "/",
-      time: "2022-07-01 00:00:00",
-      price: "600"
-    },
-  ])
+  const [recommendList, setRecommendList] = useState<RecommendItem[]>([])
+
+  useEffect(() => {
+    if (props.type === 'recommend') {
+      getRecommendList().then(res => {
+        if (res.data.code === 200) {
+          const recommend = res.data.data.map((item: AuctionItem) => {
+            return {
+              img: item.img,
+              title: item.title,
+              link: `/auction/${item.aid}`,
+              time: item.time,
+              price: item.price
+            }
+          });
+          setRecommendList(recommend);
+        }
+      })
+    } else {
+      // 获取相关列表
+    }
+  }, []);
 
   return (
     <div>

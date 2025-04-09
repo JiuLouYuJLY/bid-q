@@ -33,7 +33,7 @@ const ReservationList = memo((props: ReservationListProps) => {
                         <Image lazy src={item.img} className='bid-q-home-reservation-list-item-img'/>
                         <div className='big-q-home-reservation-list-item-cover-background'></div>
                         <div className='bid-q-home-reservation-list-item-time'>
-                          拍卖时间 {item.time}
+                          拍卖截止时间 {item.time}
                         </div>
                       </div>
                       <div className='bid-q-home-reservation-list-item-title'>{item.title}</div>

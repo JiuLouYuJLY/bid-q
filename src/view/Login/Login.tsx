@@ -109,7 +109,6 @@ const Login = memo(() => {
       captchaKey: captcha.captchaKey
     };
     authLogin(loginForm).then(res => {
-      console.log(res);
       if (res.data.code === 200) {
         navigate('/home');
       } else {
@@ -306,7 +305,6 @@ const Login = memo(() => {
                     clearable={true}
                     placeholder="请输入验证码"
                   />
-                  {/*<Image src="/clock.png" alt="验证码" style={{marginLeft: 10}}/>*/}
                   <Button
                     style={{marginLeft: 10}}
                     onClick={getEmailCaptcha}

@@ -84,6 +84,7 @@ const UserSection = () => {
             avatar: res.data.data.avatar,
             lotName: res.data.data.lotName,
           });
+          localStorage.setItem('uid', res.data.data.uid.toString());
         }
       });
     }
@@ -116,6 +117,7 @@ const UserSection = () => {
                 content: '退出登录',
                 onClick: () => {
                   localStorage.removeItem('token');
+                  localStorage.removeItem('uid');
                   window.location.reload();
                 },
                 prefixIcon: <LogoutIcon/>,
