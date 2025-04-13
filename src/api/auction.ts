@@ -23,3 +23,15 @@ export const getRecommendList = (num: number = 10) => {
     },
   });
 };
+
+export const search = (keyword: string, page: number = 0, pageSize: number = 10) => {
+  return instance({
+    url: "/search",
+    method: "get",
+    params: {
+      keyword: keyword,
+      page: page,
+      size: pageSize,
+    },
+  });
+};
