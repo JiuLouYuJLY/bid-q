@@ -1,9 +1,12 @@
-import {memo, useRef, useState} from "react";
+import {memo, useRef, useState, useEffect} from "react";
 import Header from "../../component/header/Header.tsx";
 import Footer from "../../component/footer/Footer.tsx";
 import './Upload.less';
 import {Button, DatePicker, Form, Input, TagInput, Textarea, Upload} from "tdesign-react";
 import {useTitle} from "../../hook";
+import {createAuction} from "../../api/auction.ts";
+import {isUserLogin} from "../../api/user.ts";
+import {useNavigate} from "react-router-dom";
 
 interface FormData {
   title: string;
@@ -12,6 +15,11 @@ interface FormData {
   tags: string[];
   desc: string;
   time: string;
+}
+
+interface FileItem {
+  url: string;
+  status: string;
 }
 
 const myUpload = memo(() => {
@@ -26,10 +34,60 @@ const myUpload = memo(() => {
     time: '',
   });
   const uploadRef = useRef(null);
-  const [files, setFiles] = useState([]);
+  const [files, setFiles] = useState<FileItem[]>([]);
+  const [tip, setTip] = useState('');
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!isUserLogin()) {
+      navigate('/login', {replace: true});
+    }
+  }, []);
+
+  const validate = () => {
+    if (!formData.title) {
+      setTip('请输入拍品名字');
+      return false;
+    }
+    if (!formData.img) {
+      setTip('请上传拍品图片');
+      return false;
+    }
+    if (!formData.price) {
+      setTip('请输入拍品起拍价');
+      return false;
+    }
+    if (formData.tags.length === 0) {
+      setTip('请输入拍品标签');
+      return false;
+    }
+    if (!formData.desc) {
+      setTip('请输入拍品描述');
+      return false;
+    }
+    if (!formData.time) {
+      setTip('请选择拍品截止时间');
+      return false;
+    }
+    setTip('');
+    return true;
+  };
 
   const handleUpload = () => {
-    console.log(formData);
+    if (!validate()) {
+      return;
+    }
+    const creatData = {
+      ...formData,
+      price: Number(formData.price),
+      time: formData.time.replace(' ', 'T'),
+      uid: Number(localStorage.getItem('uid') || ''),
+    }
+    createAuction(creatData).then((res) => {
+      if (res.data.success) {
+        navigate('/space/lot', {replace: true});
+      }
+    })
   }
 
   return (
@@ -51,7 +109,7 @@ const myUpload = memo(() => {
                 ref={uploadRef}
                 files={files}
                 onChange={setFiles}
-                action="//service-bv448zsw-1257786608.gz.apigw.tencentcs.com/api/upload-demo"
+                action="//localhost:8080/api/files/upload"
                 theme="image"
                 tips="请选择单张图片文件上传"
                 accept="image/*"
@@ -62,9 +120,16 @@ const myUpload = memo(() => {
                 }}
                 formatResponse={(response) => {
                   // 检查服务器返回的数据格式
-                  if (response && response.url) {
+                  if (response.code === 200) {
+                    setFiles([
+                      {
+                        url: response.data,
+                        status: "success",
+                      },
+                    ]);
+                    setFormData({...formData, img: response.data});
                     return {
-                      url: response.url, // 图片 URL
+                      url: response.data, // 图片 URL
                       status: "success", // 上传状态
                     };
                   }
@@ -100,7 +165,7 @@ const myUpload = memo(() => {
                 rows={5}
               />
             </FormItem>
-            <FormItem name="time" label="拍卖时间">
+            <FormItem name="time" label="拍卖截止时间">
               <DatePicker
                 enableTimePicker
                 value={formData.time}
@@ -108,6 +173,9 @@ const myUpload = memo(() => {
                 clearable
               />
             </FormItem>
+            {
+              tip && <div style={{color: 'red', marginBottom: 10}}>{tip}</div>
+            }
             <FormItem>
               <Button theme="primary" block onClick={handleUpload}>
                 上传

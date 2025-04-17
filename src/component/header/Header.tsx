@@ -74,19 +74,23 @@ const UserSection = () => {
     lotName: '',
   });
 
+  const getUser = () => {
+    getUserInfo().then((res) => {
+      if (res.data.code === 200) {
+        setUserInfo({
+          uid: res.data.data.uid,
+          name: res.data.data.name,
+          avatar: res.data.data.avatar,
+          lotName: res.data.data.lotName,
+        });
+        localStorage.setItem('uid', res.data.data.uid.toString());
+      }
+    });
+  }
+
   useEffect(() => {
     if (isUserLogin()) {
-      getUserInfo().then((res) => {
-        if (res.data.code === 200) {
-          setUserInfo({
-            uid: res.data.data.uid,
-            name: res.data.data.name,
-            avatar: res.data.data.avatar,
-            lotName: res.data.data.lotName,
-          });
-          localStorage.setItem('uid', res.data.data.uid.toString());
-        }
-      });
+      getUser();
     }
   }, []);
 

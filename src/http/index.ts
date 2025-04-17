@@ -25,12 +25,13 @@ instance.interceptors.response.use(
     if (response.headers.token) {
       localStorage.setItem("token", response.headers.token);
     }
+    if (response.data.code === 401 && response.data.message === "无效的token") {
+      localStorage.removeItem("token");
+      localStorage.removeItem("uid");
+    }
     return response;
   },
   (error) => {
-    // if (error.response.status === 401) {
-    //   localStorage.removeItem("token");
-    // }
     return Promise.reject(error);
   }
 );

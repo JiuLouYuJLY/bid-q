@@ -115,9 +115,6 @@ const Login = memo(() => {
         setTip(res.data.message);
         resetCaptcha();
       }
-      // if (res.data.code === 200) {
-      //   navigate('/home');
-      // }
     });
   }
 
@@ -175,7 +172,6 @@ const Login = memo(() => {
       code: loginFormData.code
     };
     authRegister(registerForm).then(res => {
-      console.log(res);
       if (res.data.code === 200) {
         MessagePlugin.success('注册成功,请登录');
         setAction('login');
@@ -225,7 +221,7 @@ const Login = memo(() => {
 
   useEffect(() => {
     if (isUserLogin()) {
-      navigate('/home');
+      navigate('/home', {replace: true});
     }
     resetCaptcha();
   }, []);

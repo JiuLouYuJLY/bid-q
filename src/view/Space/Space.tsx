@@ -8,6 +8,7 @@ import Reservation from "./Reservation.tsx";
 import History from "./History.tsx";
 import Lot from "./Lot.tsx";
 import Setting from "./Setting.tsx";
+import {isUserLogin} from "../../api/user.ts";
 
 const tabList = [
   {label: '拍卖预约', value: 1, panel: <Reservation/>},
@@ -30,6 +31,12 @@ const Space = memo(() => {
   const {pathname} = useLocation();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState(1);
+
+  useEffect(() => {
+    if (!isUserLogin()) {
+      navigate('/login', {replace: true});
+    }
+  }, []);
 
   useEffect(() => {
     setActiveTab(tabMap[pathname.split('/').pop() || 'space']);

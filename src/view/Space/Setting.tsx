@@ -1,29 +1,86 @@
-import {memo, useState} from "react";
+import {memo, useState, useEffect} from "react";
 import './Setting.less';
 import {useTitle} from "../../hook";
-import {Divider, Input, Upload} from "tdesign-react";
+import {Divider, Input, Upload, MessagePlugin} from "tdesign-react";
+import {getUserInfo, isUserLogin, updateUserInfo} from "../../api/user.ts";
+import {useNavigate} from "react-router-dom";
 
 const Setting = memo(() => {
   useTitle('设置');
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [userInfo, _setUserInfo] = useState({
+  const navigate = useNavigate();
+  const uid = localStorage.getItem('uid') || '';
+  const [userInfo, setUserInfo] = useState({
     avatar: '',
-    nickname: 'Tom',
-    lotName: '海阔天空',
+    nickname: '',
+    lotName: '',
   });
   const [files, setFiles] = useState([
     {
-      url: userInfo.avatar || 'https://tdesign.gtimg.com/site/avatar.jpg',
-      name: 'avatar.jpg',
+      url: userInfo.avatar,
       status: 'success',
     },
   ]);
+  const [flag, setFlag] = useState(false);
+
+  const updateUser = (info: { nickname?: string; lotName?: string }) => {
+    const data = {
+      uid: Number(uid),
+      nickname: info.nickname || userInfo.nickname,
+      lotName: info.lotName || userInfo.lotName,
+      avatar: userInfo.avatar,
+    }
+    updateUserInfo(data).then(res => {
+      if (res.data.code === 200) {
+        MessagePlugin.success('修改成功');
+        getUserInfo().then(res => {
+          if (res.data.code === 200) {
+            setUserInfo({
+              nickname: res.data.data.name,
+              avatar: res.data.data.avatar,
+              lotName: res.data.data.lotName,
+            });
+          }
+        });
+      }
+    })
+  }
+
+  useEffect(() => {
+    if (!isUserLogin()) {
+      navigate('/login', {replace: true});
+    }
+  }, []);
+
+  useEffect(() => {
+    getUserInfo().then(res => {
+      if (res.data.code === 200) {
+        setUserInfo({
+          nickname: res.data.data.name,
+          avatar: res.data.data.avatar,
+          lotName: res.data.data.lotName,
+        });
+        setFiles([
+          {
+            url: res.data.data.avatar,
+            status: 'success',
+          },
+        ]);
+      }
+    });
+  }, []);
+
+  useEffect(() => {
+    if (flag && userInfo.avatar) {
+      updateUser({});
+      window.location.reload();
+    }
+  }, [userInfo.avatar]);
 
   return (
     <div className='bid-q-space-setting-container'>
-      <ValueField label={'用户名'} initValue={userInfo.nickname}/>
+      <ValueField label={'用户名'} initValue={userInfo.nickname} onBlur={(value) => updateUser({nickname:value})}/>
       <Divider/>
-      <ValueField label={'拍卖名'} initValue={userInfo.lotName}/>
+      <ValueField label={'拍卖名'} initValue={userInfo.lotName} onBlur={(value) => updateUser({lotName:value})}/>
       <Divider/>
       <div style={{display: 'flex', alignItems: 'center'}}>
         <div className='bid-q-space-setting-value-field-label'>用户头像</div>
@@ -35,7 +92,7 @@ const Setting = memo(() => {
           files={files}
           onChange={setFiles}
           showImageFileName={false}
-          action="//service-bv448zsw-1257786608.gz.apigw.tencentcs.com/api/upload-demo"
+          action="//localhost:8080/api/files/upload"
           theme="image"
           accept="image/*"
           locale={{
@@ -45,9 +102,17 @@ const Setting = memo(() => {
           }}
           formatResponse={(response) => {
             // 检查服务器返回的数据格式
-            if (response && response.url) {
+            if (response.code === 200) {
+              setFiles([
+                {
+                  url: response.data,
+                  status: "success",
+                },
+              ]);
+              setUserInfo({...userInfo, avatar: response.data});
+              setFlag(true);
               return {
-                url: response.url, // 图片 URL
+                url: response.data, // 图片 URL
                 status: "success", // 上传状态
               };
             }
@@ -73,6 +138,10 @@ const ValueField = memo(
     const [isEdit, setIsEdit] = useState(false);
     const [value, setValue] = useState(initValue);
 
+    useEffect(() => {
+      setValue(initValue);
+    }, [initValue]);
+
     return (
       <div className='bid-q-space-setting-value-field-container'>
         <p className='bid-q-space-setting-value-field-label'>{label}</p>
@@ -97,7 +166,7 @@ const ValueField = memo(
             }}
           />
         ) : (
-          <p onClick={() => setIsEdit(true)}>{value}</p>
+          <p onClick={() => setIsEdit(true)}>{value || '请点击设置'}</p>
         )}
       </div>
     );
