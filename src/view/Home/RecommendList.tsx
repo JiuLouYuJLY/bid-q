@@ -66,6 +66,12 @@ const RecommendList = memo((props: RecommendListProps) => {
     }
   }, []);
 
+  if (!recommendList.length) return (
+    <div>
+      <div className='bid-q-home-recommend-empty'>暂无相关推荐</div>
+    </div>
+  );
+
   return (
     <div>
       <div className='bid-q-home-recommend-header'>
