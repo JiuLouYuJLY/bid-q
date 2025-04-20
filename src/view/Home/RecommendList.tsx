@@ -2,11 +2,13 @@ import {memo, useState, useEffect} from "react";
 
 import './RecommendList.less';
 import {Image} from "tdesign-react";
-import {getRecommendList} from "../../api/auction.ts";
+import {getRecommendByTags, getRecommendList} from "../../api/auction.ts";
 import {AuctionItem} from "./Home.tsx";
 
 interface RecommendListProps {
-  type: string
+  type: string;
+  aid?: number;
+  tags?: string[];
 }
 
 interface RecommendItem {
@@ -18,26 +20,49 @@ interface RecommendItem {
 }
 
 const RecommendList = memo((props: RecommendListProps) => {
-  const [recommendList, setRecommendList] = useState<RecommendItem[]>([])
+  const [recommendList, setRecommendList] = useState<RecommendItem[]>([]);
+
+  const getRecommend = () => {
+    getRecommendList().then(res => {
+      if (res.data.code === 200) {
+        const recommend = res.data.data.map((item: AuctionItem) => {
+          return {
+            img: item.img,
+            title: item.title,
+            link: `/auction/${item.aid}`,
+            time: item.time.replace('T', ' '),
+            price: item.price
+          }
+        });
+        setRecommendList(recommend);
+      }
+    })
+  }
+
+  const getRecommendByTag = () => {
+    if (!props.tags || !props.aid) return;
+    getRecommendByTags(props.tags, props.aid).then(res => {
+      if (res.data.code === 200) {
+        const recommend = res.data.data.map((item: AuctionItem) => {
+          return {
+            img: item.img,
+            title: item.title,
+            link: `/auction/${item.aid}`,
+            time: item.time.replace('T', ' '),
+            price: item.price
+          }
+        });
+        setRecommendList(recommend);
+      }
+    })
+  }
 
   useEffect(() => {
     if (props.type === 'recommend') {
-      getRecommendList().then(res => {
-        if (res.data.code === 200) {
-          const recommend = res.data.data.map((item: AuctionItem) => {
-            return {
-              img: item.img,
-              title: item.title,
-              link: `/auction/${item.aid}`,
-              time: item.time.replace('T', ' '),
-              price: item.price
-            }
-          });
-          setRecommendList(recommend);
-        }
-      })
+      getRecommend();
     } else {
-      // 获取相关列表
+      if (!props.tags || !props.aid) return;
+      getRecommendByTag();
     }
   }, []);
 
@@ -46,6 +71,11 @@ const RecommendList = memo((props: RecommendListProps) => {
       <div className='bid-q-home-recommend-header'>
         <Image lazy src='/chasing.png' style={{height: 44, backgroundColor: '#fff'}}/>
         <span className='bid-q-home-recommend-title'>{props.type === 'recommend' ? '猜你想拍' : '与此相关'}</span>
+        {
+          props.type === 'recommend' ?
+            <span className='bid-q-home-recommend-fresh' onClick={getRecommend}>刷新</span>
+            : <span className='bid-q-home-recommend-fresh' onClick={getRecommendByTag}>刷新</span>
+        }
       </div>
       <div>
         <div className='bid-q-home-recommend-list'>

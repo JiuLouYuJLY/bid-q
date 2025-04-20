@@ -3,28 +3,44 @@ import Header from "../../component/header/Header.tsx";
 import Footer from "../../component/footer/Footer.tsx";
 import "./Auction.less";
 import {useTitle} from "../../hook";
-import {Button, Image, Input, Popup, Tag} from "tdesign-react";
+import {Button, Image, Input, Popup, Tag, MessagePlugin} from "tdesign-react";
 import RecommendList from "../Home/RecommendList.tsx";
+import {getAuctionDetail} from "../../api/auction.ts";
+import {useParams} from "react-router-dom";
+import {createReservation, deleteReservation, getLotNameById, isReserved} from "../../api/user.ts";
+
+interface AuctionInfoProps {
+  img: string;
+  title: string;
+  desc: string;
+  time: string;
+  tags: string[];
+  currentPrice: string;
+  lotId: number;
+}
 
 const quickPrice = [1, 10, 100, 1000, 10000];
 
 const Auction = memo(() => {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [auctionInfo, _setAuctionInfo] = useState({
-    title: 'ikun手办小黄鸡',
-    desc: 'ikun手办小黄鸡坤坤鸡你太美手办蔡徐坤周边卡通公仔车载小摆件-阿里巴巴ikun手办小黄鸡坤坤鸡你太美手办蔡徐坤周边卡通公仔车载小摆件-阿里巴巴ikun手办小黄鸡坤坤鸡你太美手办蔡徐坤周边卡通公仔车载小摆件-阿里巴巴ikun手办小黄鸡坤坤鸡你太美手办蔡徐坤周边卡通公仔车载小摆件-阿里巴巴ikun手办小黄鸡坤坤鸡你太美手办蔡徐坤周边卡通公仔车载小摆件-阿里巴巴ikun手办小黄鸡坤坤鸡你太美手办蔡徐坤周边卡通公仔车载小摆件-阿里巴巴ikun手办小黄鸡坤坤鸡你太美手办蔡徐坤周边卡通公仔车载小摆件-阿里巴巴',
-    img: "https://cbu01.alicdn.com/img/ibank/O1CN01C1QpSS1OAcEsJWlen_!!3933321665-0-cib.jpg?__r__=1667037502452",
-    time: '2025-04-01 00:00:00',
-    tags: ['ikun', '小黄鸡', '蔡徐坤', '小摆件', '车载', '手办', '周边', '卡通公仔', '坤坤', '鸡你太美'],
-    price: '100',
+  const {id} = useParams();
+  const uid = localStorage.getItem('uid') || '';
+  const [auctionInfo, setAuctionInfo] = useState<AuctionInfoProps>({
+    img: '',
+    title: '',
+    desc: '',
+    time: '',
+    tags: [],
+    currentPrice: '',
+    lotId: 0,
   })
   const [isReservation, setIsReservation] = useState(false);
   const [nowTime, setNowTime] = useState(new Date().getTime());
   const [endTime, setEndTime] = useState('');
-  const [nowPrice, setNowPrice] = useState(auctionInfo.price);
-  const [price, setPrice] = useState(auctionInfo.price);
+  const [nowPrice, setNowPrice] = useState(auctionInfo.currentPrice);
+  const [price, setPrice] = useState(auctionInfo.currentPrice);
   const [autoPrice, setAutoPrice] = useState(false);
-  const [nowLotName, setNowLotName] = useState('Tom');
+  const [nowLotName, setNowLotName] = useState('');
+  const [myLotName, setMyLotName] = useState('');
   useTitle(`拍卖 - ${auctionInfo.title}`);
 
   const getEndTime = useCallback((nowTime: number) => {
@@ -38,6 +54,36 @@ const Auction = memo(() => {
     const second = Math.floor((endTime % (60 * 1000)) / 1000);
     return `${day}天${hour}小时${minute}分钟${second}秒`;
   }, [auctionInfo.time]);
+
+  useEffect(() => {
+    getAuctionDetail(Number(id)).then((res) => {
+      if (res.data.code === 200) {
+        const data = {
+          title: res.data.data.auction.title,
+          desc: res.data.data.auction.desc,
+          img: res.data.data.auction.img,
+          time: res.data.data.auction.time.replace('T', ' '),
+          tags: res.data.data.tags,
+          lotId: res.data.data.auction.lotId,
+          currentPrice: res.data.data.auction.currentPrice,
+        }
+        setAuctionInfo(data);
+        setPrice(data.currentPrice);
+        setNowPrice(data.currentPrice);
+        getLotName(data.lotId);
+        getLotNameById(Number(uid)).then((res) => {
+          if (res.data.code === 200) {
+            setMyLotName(res.data.data);
+          }
+        })
+      }
+    });
+    isReserved(Number(uid),Number(id)).then((res) => {
+      if (res.data.code === 200) {
+        setIsReservation(res.data.data);
+      }
+    });
+  }, []);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -54,9 +100,42 @@ const Auction = memo(() => {
     if (autoPrice) {
       setNowPrice(newPrice.toString());
       setNowLotName('Tom' + newPrice);
-
     }
     setPrice(newPrice.toString());
+  }
+
+  const addReservation = () => {
+    if (uid) {
+      createReservation(Number(uid),Number(id)).then((res) => {
+        if (res.data.code === 200) {
+          MessagePlugin.success('预约成功');
+          setIsReservation(true);
+        }
+      });
+    } else {
+      MessagePlugin.warning('请先登录');
+    }
+  }
+
+  const cancelReservation = () => {
+    deleteReservation(Number(uid),Number(id)).then((res) => {
+      if (res.data.code === 200) {
+        MessagePlugin.success('取消预约成功');
+        setIsReservation(false);
+      }
+    })
+  }
+
+  const getLotName = (id: number) => {
+    if (id) {
+      getLotNameById(id).then((res) => {
+        if (res.data.code === 200) {
+          setNowLotName(res.data.data);
+        }
+      })
+    } else {
+      setNowLotName('暂无人出价');
+    }
   }
 
   return (
@@ -90,12 +169,12 @@ const Auction = memo(() => {
               {
                 isReservation ? (
                   <div>
-                    <Button theme="danger" block onClick={() => setIsReservation(false)}>
+                    <Button theme="danger" block onClick={cancelReservation}>
                       取消预约
                     </Button>
                   </div>
                 ) : (
-                  <Button theme="primary" block onClick={() => setIsReservation(true)}>
+                  <Button theme="primary" block onClick={addReservation}>
                     预约拍卖
                   </Button>
                 )
@@ -143,7 +222,15 @@ const Auction = memo(() => {
                         setPrice(value);
                       }}
                       onKeydown={(value, context) => {
+                        if (!value) {
+                          setPrice('');
+                          return;
+                        }
                         if (context.e.key === 'Enter') {
+                          if (!myLotName) {
+                            MessagePlugin.warning('请先去个人中心设置拍卖名');
+                            return;
+                          }
                           setNowPrice(value);
                           setNowLotName('Tom' + value);
                           context.e.preventDefault();
@@ -156,6 +243,14 @@ const Auction = memo(() => {
                       theme="primary"
                       block
                       onClick={() => {
+                        if (!price) {
+                          MessagePlugin.warning('请输入价格');
+                          return;
+                        }
+                        if (!myLotName) {
+                          MessagePlugin.warning('请先去个人中心设置拍卖名');
+                          return;
+                        }
                         setNowPrice(price);
                         setNowLotName('Tom' + price);
                       }}
@@ -191,7 +286,7 @@ const Auction = memo(() => {
             }
           </div>
         </div>
-        <RecommendList type='auction'/>
+        { auctionInfo.tags.length > 0 && <RecommendList type='auction' tags={auctionInfo.tags} aid={Number(id)}/>}
       </div>
       <Footer/>
     </div>

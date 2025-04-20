@@ -106,6 +106,8 @@ const Home = () => {
     getIndex();
     if (isUserLogin()) {
       getReservation();
+    } else {
+      setReservationList([]);
     }
   }, []);
 

@@ -66,3 +66,32 @@ export const deleteHistory = (uid: number, aid: number) => {
     }
   })
 }
+
+export const isReserved = (uid: number, aid: number) => {
+  return instance({
+    url: "/reservations/check",
+    method: "get",
+    params: {
+      uid,
+      aid
+    }
+  })
+}
+
+export const createReservation = (uid: number, aid: number) => {
+  return instance({
+    url: "/reservations/create",
+    method: "post",
+    data: {
+      uid,
+      aid
+    }
+  })
+}
+
+export const getLotNameById = (uid: number) => {
+  return instance({
+    url: `/users/${uid}/lot-name`,
+    method: "get",
+  })
+}

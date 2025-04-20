@@ -82,3 +82,24 @@ export const deleteAuction = (id: number) => {
     method: "delete",
   });
 };
+
+export const getRecommendByTags = (tags: string[], aid: number) => {
+  return instance({
+    url: `/auctions/recommend`,
+    method: "get",
+    params: {
+      tags,
+      aid
+    },
+    paramsSerializer: params => {
+      // 将数组参数转换为tags=value1&tags=value2格式
+      return Object.entries(params)
+        .flatMap(([key, values]) =>
+          Array.isArray(values)
+            ? values.map(v => `${key}=${encodeURIComponent(v)}`)
+            : `${key}=${encodeURIComponent(values)}`
+        )
+        .join('&');
+    }
+  });
+};
