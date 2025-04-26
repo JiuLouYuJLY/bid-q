@@ -95,3 +95,25 @@ export const getLotNameById = (uid: number) => {
     method: "get",
   })
 }
+
+export const bidToAuction = (aid: number, uid: number, price: number) => {
+  return instance({
+    url: `/auctions/${aid}/bid`,
+    method: "post",
+    data: {
+      uid,
+      price
+    }
+  })
+}
+
+export const addHistory = (aid: number, uid: number) => {
+  return instance({
+    url: "/histories/add",
+    method: "post",
+    data: {
+      aid,
+      uid
+    }
+  })
+}

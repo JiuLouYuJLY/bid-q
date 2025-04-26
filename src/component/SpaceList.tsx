@@ -164,7 +164,7 @@ const SpaceList = (list: SpaceListProps) => {
                 />
                 <div>
                   <div>
-                    <span style={{fontSize: 24}}>￥ </span>
+                    <span style={{fontSize: 24}}>起拍价: ￥ </span>
                     <span style={{fontSize: 32, color: '#ff0000'}}>{item.price}</span>
                   </div>
                   <div>

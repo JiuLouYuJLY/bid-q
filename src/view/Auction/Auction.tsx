@@ -5,9 +5,16 @@ import "./Auction.less";
 import {useTitle} from "../../hook";
 import {Button, Image, Input, Popup, Tag, MessagePlugin} from "tdesign-react";
 import RecommendList from "../Home/RecommendList.tsx";
-import {getAuctionDetail} from "../../api/auction.ts";
+import {getAuctionDetail, getNowAuctionPriceAndLot} from "../../api/auction.ts";
 import {useParams} from "react-router-dom";
-import {createReservation, deleteReservation, getLotNameById, isReserved} from "../../api/user.ts";
+import {
+  addHistory,
+  bidToAuction,
+  createReservation,
+  deleteReservation,
+  getLotNameById,
+  isReserved
+} from "../../api/user.ts";
 
 interface AuctionInfoProps {
   img: string;
@@ -41,6 +48,7 @@ const Auction = memo(() => {
   const [autoPrice, setAutoPrice] = useState(false);
   const [nowLotName, setNowLotName] = useState('');
   const [myLotName, setMyLotName] = useState('');
+  const [haveHistory, setHaveHistory] = useState(false);
   useTitle(`拍卖 - ${auctionInfo.title}`);
 
   const getEndTime = useCallback((nowTime: number) => {
@@ -89,17 +97,44 @@ const Auction = memo(() => {
     const timer = setInterval(() => {
       setNowTime(new Date().getTime());
       setEndTime(getEndTime(nowTime));
+      getNowAuctionPriceAndLot(Number(id)).then((res) => {
+        if (res.data.code === 200) {
+          setNowPrice(res.data.data.currentPrice);
+          getLotName(res.data.data.lotId);
+        }
+      })
     }, 1000);
     return () => {
       clearInterval(timer);
     }
   }, [getEndTime, nowTime]);
 
+  const bidTo = (price: number) => {
+    bidToAuction(Number(id), Number(uid), price).then((res) => {
+      if (res.data.code === 200) {
+        MessagePlugin.success(res.data.data.message);
+        setNowPrice(res.data.data.currentPrice.toString());
+        getLotName(res.data.data.lotId);
+      } else {
+        MessagePlugin.error(res.data.message);
+        setPrice(nowPrice);
+      }
+    });
+    if (!haveHistory) {
+      addHistory(Number(id), Number(uid)).then((res) => {
+        if (res.data.code === 200) {
+          setHaveHistory(true);
+        } else {
+          setHaveHistory(true);
+        }
+      })
+    }
+  }
+
   const handleNowPrice = (bid: number) => {
     const newPrice = parseInt(price, 10) + bid;
     if (autoPrice) {
-      setNowPrice(newPrice.toString());
-      setNowLotName('Tom' + newPrice);
+      bidTo(newPrice);
     }
     setPrice(newPrice.toString());
   }
@@ -231,8 +266,7 @@ const Auction = memo(() => {
                             MessagePlugin.warning('请先去个人中心设置拍卖名');
                             return;
                           }
-                          setNowPrice(value);
-                          setNowLotName('Tom' + value);
+                          bidTo(Number(value));
                           context.e.preventDefault();
                         }
                       }}
@@ -251,8 +285,7 @@ const Auction = memo(() => {
                           MessagePlugin.warning('请先去个人中心设置拍卖名');
                           return;
                         }
-                        setNowPrice(price);
-                        setNowLotName('Tom' + price);
+                        bidTo(Number(price));
                       }}
                     >
                       出价

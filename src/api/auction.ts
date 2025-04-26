@@ -103,3 +103,10 @@ export const getRecommendByTags = (tags: string[], aid: number) => {
     }
   });
 };
+
+export const getNowAuctionPriceAndLot = (aid: number) => {
+  return instance({
+    url: `/auctions/${aid}/price`,
+    method: "get",
+  });
+};
