@@ -124,8 +124,12 @@ const SpaceList = (list: SpaceListProps) => {
         list.list.map((item) => {
           const action = list.type === "reservation" ?
             (<Space>
-                <Button theme="primary"
-                        onClick={() => list.onDeleteClick?.(item.aid)}>取消预约</Button>
+                {
+                  new Date(item.time).getTime() - new Date().getTime() > 0 && (
+                    <Button theme="primary"
+                            onClick={() => list.onDeleteClick?.(item.aid)}>取消预约</Button>
+                  )
+                }
                 <Button theme="default" onClick={() => {
                   nav(item.link)
                 }}>前往拍卖</Button>
@@ -134,20 +138,31 @@ const SpaceList = (list: SpaceListProps) => {
             : list.type === "lot" ?
               (
                 <Space>
-                  <Button theme="primary" onClick={() => {
-                    getAuctionDetail(item.aid).then((res) => {
-                      if (res.data.code === 200) {
-                        const data = res.data.data;
-                        setData({
-                          auction: data.auction,
-                          tags: data.tags,
-                        });
-                      }
-                    })
-                  }}>修改拍品</Button>
+                  {
+                    new Date(item.time).getTime() - new Date().getTime() > 0 && (
+                      <Button theme="primary" onClick={() => {
+                        getAuctionDetail(item.aid).then((res) => {
+                          if (res.data.code === 200) {
+                            const data = res.data.data;
+                            setData({
+                              auction: data.auction,
+                              tags: data.tags,
+                            });
+                          }
+                        })
+                      }}>修改拍品</Button>
+                    )
+                  }
                   <Button theme="danger" onClick={() => list.onDeleteClick?.(item.aid)}>删除拍品</Button>
                 </Space>
-              ) : <Button theme="danger" onClick={() => list.onDeleteClick?.(item.aid)}>删除历史</Button>;
+              ) : (
+                <Space>
+                  <Button theme="danger" onClick={() => list.onDeleteClick?.(item.aid)}>删除历史</Button>
+                  <Button theme="default" onClick={() => {
+                    nav(item.link)
+                  }}>前往拍卖</Button>
+                </Space>
+              );
           return (
             <div key={item.aid}>
               <ListItem

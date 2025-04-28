@@ -49,11 +49,19 @@ const Auction = memo(() => {
   const [nowLotName, setNowLotName] = useState('');
   const [myLotName, setMyLotName] = useState('');
   const [haveHistory, setHaveHistory] = useState(false);
+  const [isEnd, setIsEnd] = useState(false);
   useTitle(`拍卖 - ${auctionInfo.title}`);
 
   const getEndTime = useCallback((nowTime: number) => {
     const endTime = new Date(auctionInfo.time).getTime() - nowTime;
     if (endTime < 0) {
+      setIsEnd(true);
+      deleteReservation(Number(uid), Number(id)).then(res => {
+        if (res.data.code === 200) {
+          MessagePlugin.success('拍卖结束');
+          setIsReservation(false);
+        }
+      });
       return '已结束';
     }
     const day = Math.floor(endTime / (24 * 3600 * 1000));
@@ -95,6 +103,9 @@ const Auction = memo(() => {
 
   useEffect(() => {
     const timer = setInterval(() => {
+      if (isEnd) {
+        return;
+      }
       setNowTime(new Date().getTime());
       setEndTime(getEndTime(nowTime));
       getNowAuctionPriceAndLot(Number(id)).then((res) => {
@@ -140,7 +151,12 @@ const Auction = memo(() => {
   }
 
   const addReservation = () => {
+    const endTime = new Date(auctionInfo.time).getTime() - new Date().getTime();
     if (uid) {
+      if (endTime < 0) {
+        MessagePlugin.warning('拍卖已结束');
+        return;
+      }
       createReservation(Number(uid),Number(id)).then((res) => {
         if (res.data.code === 200) {
           MessagePlugin.success('预约成功');
