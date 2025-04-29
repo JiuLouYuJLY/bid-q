@@ -34,6 +34,14 @@ const Router = createBrowserRouter([
     element: <Space/>
   },
   {
+    path: "space/buy",
+    element: <Space/>
+  },
+  {
+    path: "space/sold",
+    element: <Space/>
+  },
+  {
     path: "space/history",
     element: <Space/>
   },

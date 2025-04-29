@@ -9,12 +9,16 @@ import History from "./History.tsx";
 import Lot from "./Lot.tsx";
 import Setting from "./Setting.tsx";
 import {isUserLogin} from "../../api/user.ts";
+import Buy from "./Buy.tsx";
+import Sold from "./Sold.tsx";
 
 const tabList = [
   {label: '拍卖预约', value: 1, panel: <Reservation/>},
   {label: '我的拍品', value: 2, panel: <Lot/>},
-  {label: '拍卖历史', value: 3, panel: <History/>},
-  {label: '设置', value: 4, panel: <Setting/>},
+  {label: '已拍得', value: 3, panel: <Buy/>},
+  {label: '已拍出', value: 4, panel: <Sold/>},
+  {label: '拍卖历史', value: 5, panel: <History/>},
+  {label: '设置', value: 6, panel: <Setting/>},
 ];
 
 const tabMap: {
@@ -23,8 +27,10 @@ const tabMap: {
   space: 1,
   reservation: 1,
   lot: 2,
-  history: 3,
-  setting: 4,
+  buy: 3,
+  sold: 4,
+  history: 5,
+  setting: 6,
 };
 
 const Space = memo(() => {
@@ -51,7 +57,7 @@ const Space = memo(() => {
           value={activeTab}
           onChange={(value) => {
             setActiveTab(value as number);
-            navigate(`/space/${['reservation', 'lot', 'history', 'setting'][value as number - 1]}`);
+            navigate(`/space/${['reservation', 'lot', 'buy', 'sold', 'history', 'setting'][value as number - 1]}`);
           }}
           list={tabList}
           size='large'

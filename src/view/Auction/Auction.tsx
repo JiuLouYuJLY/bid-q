@@ -3,13 +3,13 @@ import Header from "../../component/header/Header.tsx";
 import Footer from "../../component/footer/Footer.tsx";
 import "./Auction.less";
 import {useTitle} from "../../hook";
-import {Button, Image, Input, Popup, Tag, MessagePlugin} from "tdesign-react";
+import {Button, Image, Input, Popup, Tag, MessagePlugin, Skeleton} from "tdesign-react";
 import RecommendList from "../Home/RecommendList.tsx";
-import {getAuctionDetail, getNowAuctionPriceAndLot} from "../../api/auction.ts";
+import {extendTime, getAuctionDetail, getNowAuctionPriceAndLot, notifyAllUser} from "../../api/auction.ts";
 import {useParams} from "react-router-dom";
 import {
   addHistory,
-  bidToAuction,
+  bidToAuction, checkUserIsUploader,
   createReservation,
   deleteReservation,
   getLotNameById,
@@ -50,26 +50,8 @@ const Auction = memo(() => {
   const [myLotName, setMyLotName] = useState('');
   const [haveHistory, setHaveHistory] = useState(false);
   const [isEnd, setIsEnd] = useState(false);
+  const [loading, setLoading] = useState(true);
   useTitle(`拍卖 - ${auctionInfo.title}`);
-
-  const getEndTime = useCallback((nowTime: number) => {
-    const endTime = new Date(auctionInfo.time).getTime() - nowTime;
-    if (endTime < 0) {
-      setIsEnd(true);
-      deleteReservation(Number(uid), Number(id)).then(res => {
-        if (res.data.code === 200) {
-          MessagePlugin.success('拍卖结束');
-          setIsReservation(false);
-        }
-      });
-      return '已结束';
-    }
-    const day = Math.floor(endTime / (24 * 3600 * 1000));
-    const hour = Math.floor((endTime % (24 * 3600 * 1000)) / (3600 * 1000));
-    const minute = Math.floor((endTime % (3600 * 1000)) / (60 * 1000));
-    const second = Math.floor((endTime % (60 * 1000)) / 1000);
-    return `${day}天${hour}小时${minute}分钟${second}秒`;
-  }, [auctionInfo.time]);
 
   useEffect(() => {
     getAuctionDetail(Number(id)).then((res) => {
@@ -101,6 +83,28 @@ const Auction = memo(() => {
     });
   }, []);
 
+  const getEndTime = useCallback((nowTime: number) => {
+    const endTime = new Date(auctionInfo.time).getTime() - nowTime;
+    if (endTime < 0) {
+      setIsEnd(true);
+      deleteReservation(Number(uid), Number(id)).then(res => {
+        if (res.data.code === 200) {
+          MessagePlugin.success('拍卖结束');
+          setIsReservation(false);
+        }
+      });
+      return '已结束';
+    }
+    const day = Math.floor(endTime / (24 * 3600 * 1000));
+    const hour = Math.floor((endTime % (24 * 3600 * 1000)) / (3600 * 1000));
+    const minute = Math.floor((endTime % (3600 * 1000)) / (60 * 1000));
+    const second = Math.floor((endTime % (60 * 1000)) / 1000);
+    if (loading) {
+      setLoading(false);
+    }
+    return `${day}天${hour}小时${minute}分钟${second}秒`;
+  }, [auctionInfo.time]);
+
   useEffect(() => {
     const timer = setInterval(() => {
       if (isEnd) {
@@ -121,6 +125,25 @@ const Auction = memo(() => {
   }, [getEndTime, nowTime]);
 
   const bidTo = (price: number) => {
+    const endTime = new Date(auctionInfo.time).getTime() - new Date().getTime();
+    if (endTime < 300000) {
+      extendTime(Number(id)).then((res) => {
+        if (res.data.code === 200) {
+          setAuctionInfo({
+            ...auctionInfo,
+            time: res.data.data.time,
+          });
+          notifyAllUser(Number(id)).then((res) => {
+           if (res.data.code === 200) {
+             MessagePlugin.warning('已延长拍卖时间');
+           }
+          })
+          if (res.data.data.extendCount === 3) {
+            MessagePlugin.warning('已延长拍卖时间3次,是最后一次延长');
+          }
+        }
+      })
+    }
     bidToAuction(Number(id), Number(uid), price).then((res) => {
       if (res.data.code === 200) {
         MessagePlugin.success(res.data.data.message);
@@ -150,6 +173,22 @@ const Auction = memo(() => {
     setPrice(newPrice.toString());
   }
 
+  const check = () => {
+    checkUserIsUploader(Number(id),Number(uid)).then((res) => {
+      if (res.data.code === 403) {
+        MessagePlugin.warning(res.data.message);
+      }
+      else {
+        createReservation(Number(uid),Number(id)).then((res) => {
+          if (res.data.code === 200) {
+            MessagePlugin.success('预约成功');
+            setIsReservation(true);
+          }
+        });
+      }
+    })
+  }
+
   const addReservation = () => {
     const endTime = new Date(auctionInfo.time).getTime() - new Date().getTime();
     if (uid) {
@@ -157,12 +196,7 @@ const Auction = memo(() => {
         MessagePlugin.warning('拍卖已结束');
         return;
       }
-      createReservation(Number(uid),Number(id)).then((res) => {
-        if (res.data.code === 200) {
-          MessagePlugin.success('预约成功');
-          setIsReservation(true);
-        }
-      });
+      check();
     } else {
       MessagePlugin.warning('请先登录');
     }
@@ -235,7 +269,9 @@ const Auction = memo(() => {
           <div className='bid-q-auction'>
             <div className='bid-q-auction-time'>
               <span>距离拍卖结束还有：</span>
-              <span>{endTime}</span>
+              <Skeleton animation='flashed' loading={loading}>
+                <span>{endTime}</span>
+              </Skeleton>
             </div>
             <div className='bid-q-auction-price'>
               <span>当前价格：</span>

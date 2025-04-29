@@ -117,3 +117,10 @@ export const addHistory = (aid: number, uid: number) => {
     }
   })
 }
+
+export const checkUserIsUploader = (aid: number, uid: number) => {
+  return instance({
+    url: `/auctions/${aid}/check-owner/${uid}`,
+    method: "get",
+  })
+}

@@ -65,6 +65,9 @@ const SpaceList = (list: SpaceListProps) => {
       status: '',
     }
   ]);
+  const today = new Date();
+  const tomorrow = new Date(today);
+  tomorrow.setDate(today.getDate() + 1);
 
   const handleClose = () => {
     setLoading(false);
@@ -137,7 +140,7 @@ const SpaceList = (list: SpaceListProps) => {
             )
             : list.type === "lot" ?
               (
-                <Space>
+                <Space style={{display: 'flex', flexWrap: 'wrap'}}>
                   {
                     new Date(item.time).getTime() - new Date().getTime() > 0 && (
                       <Button theme="primary" onClick={() => {
@@ -154,6 +157,9 @@ const SpaceList = (list: SpaceListProps) => {
                     )
                   }
                   <Button theme="danger" onClick={() => list.onDeleteClick?.(item.aid)}>删除拍品</Button>
+                  <Button theme="default" onClick={() => {
+                    nav(item.link)
+                  }}>前往拍卖</Button>
                 </Space>
               ) : (
                 <Space>
@@ -273,6 +279,9 @@ const SpaceList = (list: SpaceListProps) => {
                   <div style={{width: '80px'}}>拍卖时间:</div>
                   <DatePicker
                     enableTimePicker
+                    disableDate={{
+                      before: tomorrow.toISOString(),
+                    }}
                     value={auctionInfo?.time}
                     onChange={(item) => setAuctionInfo({...auctionInfo, time: item as string})}
                     clearable

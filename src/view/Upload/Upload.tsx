@@ -36,6 +36,9 @@ const myUpload = memo(() => {
   const uploadRef = useRef(null);
   const [files, setFiles] = useState<FileItem[]>([]);
   const [tip, setTip] = useState('');
+  const today = new Date();
+  const tomorrow = new Date(today);
+  tomorrow.setDate(today.getDate() + 1);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -168,6 +171,9 @@ const myUpload = memo(() => {
             <FormItem name="time" label="拍卖截止时间">
               <DatePicker
                 enableTimePicker
+                disableDate={{
+                  before: tomorrow.toISOString(),
+                }}
                 value={formData.time}
                 onChange={(item) => setFormData({...formData, time: item as string})}
                 clearable

@@ -110,3 +110,17 @@ export const getNowAuctionPriceAndLot = (aid: number) => {
     method: "get",
   });
 };
+
+export const extendTime = (aid: number) => {
+  return instance({
+    url: `/auctions/extend/${aid}`,
+    method: "put",
+  });
+};
+
+export const notifyAllUser = (aid: number) => {
+  return instance({
+    url: `/auctions/${aid}/notify`,
+    method: "post",
+  });
+};
