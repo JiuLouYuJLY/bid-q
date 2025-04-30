@@ -124,3 +124,94 @@ export const notifyAllUser = (aid: number) => {
     method: "post",
   });
 };
+
+export const addDeal = (aid: number, uid: number, sid: number) => {
+  return instance({
+    url: `/deal/add`,
+    method: "post",
+    data: {
+      aid,
+      uid,
+      sid
+    }
+  });
+};
+
+export const sendEmail = (uid: number) => {
+  return instance({
+    url: `/users/sendAuctionEmail`,
+    method: "post",
+    data: {
+      uid
+    }
+  });
+};
+
+export const getDealDetail  = (aid: number) => {
+  return instance({
+    url: `/deal/${aid}/auction-result`,
+    method: "get",
+  });
+};
+
+export const updateDealPayment = (aid: number, payment: number) => {
+  return instance({
+    url: `/deal/${aid}/payment`,
+    method: "put",
+    params: {
+      payment
+    }
+  });
+};
+
+export const updateDealReject = (aid: number, reject: number) => {
+  return instance({
+    url: `/deal/${aid}/reject`,
+    method: "put",
+    params: {
+      reject
+    }
+  });
+};
+
+export const updateDealContact  = (aid: number, phone: string, address: string) => {
+  return instance({
+    url: `/deal/${aid}/contact`,
+    method: "put",
+    params: {
+      phone,
+      address
+    }
+  });
+};
+
+export const updateDealGood  = (aid: number, good: number) => {
+  return instance({
+    url: `/deal/${aid}/good`,
+    method: "put",
+    params: {
+      good
+    }
+  });
+};
+
+export const updateAuctionTime = (aid: number, time: string) => {
+  return instance({
+    url: `/auctions/update-time/${aid}`,
+    method: "put",
+    data: {
+      time
+    }
+  });
+};
+
+export const sendRejectNotice = (aid: number, uid: number) => {
+  return instance({
+    url: `/deal/sendRejectNotification`,
+    method: "post",
+    params: {
+      aid,
+      uid
+    }
+  });
+};

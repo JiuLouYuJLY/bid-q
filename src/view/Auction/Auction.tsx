@@ -5,7 +5,14 @@ import "./Auction.less";
 import {useTitle} from "../../hook";
 import {Button, Image, Input, Popup, Tag, MessagePlugin, Skeleton} from "tdesign-react";
 import RecommendList from "../Home/RecommendList.tsx";
-import {extendTime, getAuctionDetail, getNowAuctionPriceAndLot, notifyAllUser} from "../../api/auction.ts";
+import {
+  addDeal,
+  extendTime,
+  getAuctionDetail, getDealDetail,
+  getNowAuctionPriceAndLot,
+  notifyAllUser,
+  sendEmail
+} from "../../api/auction.ts";
 import {useParams} from "react-router-dom";
 import {
   addHistory,
@@ -31,6 +38,7 @@ const quickPrice = [1, 10, 100, 1000, 10000];
 const Auction = memo(() => {
   const {id} = useParams();
   const uid = localStorage.getItem('uid') || '';
+  const [sid, setSid] = useState('');
   const [auctionInfo, setAuctionInfo] = useState<AuctionInfoProps>({
     img: '',
     title: '',
@@ -46,6 +54,7 @@ const Auction = memo(() => {
   const [nowPrice, setNowPrice] = useState(auctionInfo.currentPrice);
   const [price, setPrice] = useState(auctionInfo.currentPrice);
   const [autoPrice, setAutoPrice] = useState(false);
+  const [lotId, setLotId] = useState(0);
   const [nowLotName, setNowLotName] = useState('');
   const [myLotName, setMyLotName] = useState('');
   const [haveHistory, setHaveHistory] = useState(false);
@@ -65,6 +74,8 @@ const Auction = memo(() => {
           lotId: res.data.data.auction.lotId,
           currentPrice: res.data.data.auction.currentPrice,
         }
+        setSid(res.data.data.auction.uploadId);
+        setLotId(data.lotId);
         setAuctionInfo(data);
         setPrice(data.currentPrice);
         setNowPrice(data.currentPrice);
@@ -76,7 +87,7 @@ const Auction = memo(() => {
         })
       }
     });
-    isReserved(Number(uid),Number(id)).then((res) => {
+    isReserved(Number(uid), Number(id)).then((res) => {
       if (res.data.code === 200) {
         setIsReservation(res.data.data);
       }
@@ -91,8 +102,23 @@ const Auction = memo(() => {
         if (res.data.code === 200) {
           MessagePlugin.success('拍卖结束');
           setIsReservation(false);
+        } else {
+          MessagePlugin.error('拍卖已经结束');
         }
       });
+      addDeal(Number(id), lotId, Number(sid)).then((res) => {
+        if (res.data.code === 200) {
+          sendEmail(lotId).then((res) => {
+            console.log(res);
+          })
+          if (lotId === Number(uid)) {
+            MessagePlugin.success('您已成功拍得该拍品,请前往个人中心查看');
+          }
+        }
+      })
+      if (loading) {
+        setLoading(false);
+      }
       return '已结束';
     }
     const day = Math.floor(endTime / (24 * 3600 * 1000));
@@ -116,6 +142,7 @@ const Auction = memo(() => {
         if (res.data.code === 200) {
           setNowPrice(res.data.data.currentPrice);
           getLotName(res.data.data.lotId);
+          setLotId(res.data.data.lotId);
         }
       })
     }, 1000);
@@ -134,9 +161,9 @@ const Auction = memo(() => {
             time: res.data.data.time,
           });
           notifyAllUser(Number(id)).then((res) => {
-           if (res.data.code === 200) {
-             MessagePlugin.warning('已延长拍卖时间');
-           }
+            if (res.data.code === 200) {
+              MessagePlugin.warning('已延长拍卖时间');
+            }
           })
           if (res.data.data.extendCount === 3) {
             MessagePlugin.warning('已延长拍卖时间3次,是最后一次延长');
@@ -174,17 +201,24 @@ const Auction = memo(() => {
   }
 
   const check = () => {
-    checkUserIsUploader(Number(id),Number(uid)).then((res) => {
-      if (res.data.code === 403) {
-        MessagePlugin.warning(res.data.message);
-      }
-      else {
-        createReservation(Number(uid),Number(id)).then((res) => {
-          if (res.data.code === 200) {
-            MessagePlugin.success('预约成功');
-            setIsReservation(true);
-          }
-        });
+    getDealDetail(Number(id)).then((res) => {
+      if (res.data.code === 200) {
+        if (res.data.data.reject === 1 && res.data.data.uid === Number(uid)) {
+          MessagePlugin.error('您已违约,禁止拍卖该拍品');
+        } else {
+          checkUserIsUploader(Number(id), Number(uid)).then((res) => {
+            if (res.data.code === 403) {
+              MessagePlugin.warning(res.data.message);
+            } else {
+              createReservation(Number(uid), Number(id)).then((res) => {
+                if (res.data.code === 200) {
+                  MessagePlugin.success('预约成功');
+                  setIsReservation(true);
+                }
+              });
+            }
+          })
+        }
       }
     })
   }
@@ -203,7 +237,7 @@ const Auction = memo(() => {
   }
 
   const cancelReservation = () => {
-    deleteReservation(Number(uid),Number(id)).then((res) => {
+    deleteReservation(Number(uid), Number(id)).then((res) => {
       if (res.data.code === 200) {
         MessagePlugin.success('取消预约成功');
         setIsReservation(false);
@@ -371,7 +405,7 @@ const Auction = memo(() => {
             }
           </div>
         </div>
-        { auctionInfo.tags.length > 0 && <RecommendList type='auction' tags={auctionInfo.tags} aid={Number(id)}/>}
+        {auctionInfo.tags.length > 0 && <RecommendList type='auction' tags={auctionInfo.tags} aid={Number(id)}/>}
       </div>
       <Footer/>
     </div>

@@ -124,3 +124,17 @@ export const checkUserIsUploader = (aid: number, uid: number) => {
     method: "get",
   })
 }
+
+export const getUserDeal = (uid: number) => {
+  return instance({
+    url: `/deal/${uid}/result`,
+    method: "get",
+  })
+}
+
+export const noticePayment = (aid: number, uid: number) => {
+  return instance({
+    url: `/auctions/${aid}/notify-payment/${uid}`,
+    method: "post",
+  })
+}

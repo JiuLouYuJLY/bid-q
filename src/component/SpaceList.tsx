@@ -119,7 +119,6 @@ const SpaceList = (list: SpaceListProps) => {
 
   return (
     <List
-      style={{cursor: 'pointer'}}
       split={true}
       size='large'
     >
@@ -184,7 +183,7 @@ const SpaceList = (list: SpaceListProps) => {
                   description={item.desc}
                 />
                 <div>
-                  <div>
+                  <div style={{marginBottom: '10px'}}>
                     <span style={{fontSize: 24}}>起拍价: ￥ </span>
                     <span style={{fontSize: 32, color: '#ff0000'}}>{item.price}</span>
                   </div>
@@ -280,7 +279,7 @@ const SpaceList = (list: SpaceListProps) => {
                   <DatePicker
                     enableTimePicker
                     disableDate={{
-                      before: tomorrow.toISOString(),
+                      before: today.toISOString(),
                     }}
                     value={auctionInfo?.time}
                     onChange={(item) => setAuctionInfo({...auctionInfo, time: item as string})}
