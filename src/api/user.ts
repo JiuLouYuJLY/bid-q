@@ -138,3 +138,39 @@ export const noticePayment = (aid: number, uid: number) => {
     method: "post",
   })
 }
+
+export const getUserSoldList = (sid: number) => {
+  return instance({
+    url: `/deal/seller/${sid}/result`,
+    method: "get",
+  })
+}
+
+export const noticeUserGood = (uid: number, title: string) => {
+  return instance({
+    url: `/deal/notify-shipped`,
+    method: "post",
+    params: {
+      uid,
+      title
+    }
+  })
+}
+
+export const noticeSellGood = (sid: number, title: string) => {
+  return instance({
+    url: `/deal/notify-received`,
+    method: "post",
+    params: {
+      sid,
+      title
+    }
+  })
+}
+
+export const isUserReject = (sid: number) => {
+  return instance({
+    url: `/deal/seller/${sid}/reject-check`,
+    method: "get",
+  })
+}

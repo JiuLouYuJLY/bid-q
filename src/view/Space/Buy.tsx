@@ -2,7 +2,7 @@ import {memo, useState, useEffect} from "react";
 import {List, Space, Button, Dialog, Input, MessagePlugin} from 'tdesign-react';
 import './Buy.less';
 import {BasicImageViewer} from "../../component/BasicImageViewer.tsx";
-import {getLotNameById, getUserDeal, noticePayment} from "../../api/user.ts";
+import {getLotNameById, getUserDeal, noticePayment, noticeSellGood} from "../../api/user.ts";
 import {
   getDealDetail, sendRejectNotice, updateAuctionTime,
   updateDealContact,
@@ -13,6 +13,7 @@ import {
 
 interface buyListProps {
   id: number;
+  sid: number;
   title: string;
   desc: string;
   price: string;
@@ -27,7 +28,7 @@ const {ListItem, ListItemMeta} = List;
 
 const Buy = memo(() => {
   const uid = localStorage.getItem('uid') || '';
-  const [sid,  setSid] = useState(0);
+  const [sid, setSid] = useState(0);
   const [buyList, setBuyList] = useState<buyListProps[]>([]);
   const [form, setForm] = useState({
     name: '',
@@ -97,22 +98,10 @@ const Buy = memo(() => {
     handleClose();
   }
 
-  const getEndTime = (nowTime: number, time: string, id: number) => {
+  const getEndTime = (nowTime: number, time: string) => {
     const endTime = new Date(time).getTime() + 24 * 60 * 60 * 1000;
     const diffTime = endTime - nowTime;
     if (diffTime < 0) {
-      getDealDetail(id).then((res) => {
-        if (res.data.code === 200) {
-          if (res.data.data.payment === 0) {
-            updateDealReject(id, 1).then((res) => {
-              if (res.data.code === 200) {
-                MessagePlugin.error('已违约');
-                getDeal(Number(uid));
-              }
-            })
-          }
-        }
-      })
       return '已结束';
     } else {
       const diffDay = Math.floor(diffTime / (24 * 60 * 60 * 1000));
@@ -123,13 +112,42 @@ const Buy = memo(() => {
     }
   }
 
+  const reset = (id: number, sid: number) => {
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    updateAuctionTime(id, tomorrow.toISOString()).then((res) => {
+      if (res.data.code === 200) {
+        sendRejectNotice(id, sid).then((res) => {
+          if (res.data.code === 200) {
+            handleClose();
+            getDeal(Number(uid));
+          }
+        })
+      }
+    })
+  }
+
   const getDeal = (id: number) => {
     getUserDeal(id).then((res) => {
       if (res.data.code === 200) {
         const data = res.data.data;
         const deal = data.map((item: any) => {
+          if (new Date(item.dealInfo.time.replace('T', ' ')).getTime() + 24 * 60 * 60 * 1000 - nowTime < 0) {
+            if (item.dealInfo.payment === 0 && item.dealInfo.reject === 0) {
+              MessagePlugin.error(`${item.auctionDetails.title}您已超时未付款违约`);
+              updateDealReject(item.dealInfo.aid, 1);
+              reset(item.auctionDetails.aid, item.dealInfo.sid);
+              item.dealInfo.reject = 1;
+            } else if (item.dealInfo.payment !== 0 && item.dealInfo.reject === 0 && item.dealInfo.good === 0) {
+              MessagePlugin.error(`${item.auctionDetails.title}卖家超时未发货已违约`);
+              updateDealReject(item.dealInfo.aid, 2);
+              item.dealInfo.reject = 2;
+            }
+          }
           return {
             id: item.auctionDetails.aid,
+            sid: item.dealInfo.sid,
             title: item.auctionDetails.title,
             desc: item.auctionDetails.desc,
             price: item.auctionDetails.currentPrice,
@@ -185,26 +203,18 @@ const Buy = memo(() => {
         setIsChange(true);
       }
     })
-    const today = new Date();
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    updateAuctionTime(data.id, tomorrow.toISOString()).then((res) => {
+    reset(data.id, sid);
+  }
+
+  const updateGood = (id: number, sid: number, good: number, title: string) => {
+    updateDealGood(id, good).then((res) => {
       if (res.data.code === 200) {
-        sendRejectNotice(data.id, sid).then((res) => {
+        noticeSellGood(sid, title).then((res) => {
           if (res.data.code === 200) {
-            handleClose();
+            MessagePlugin.success('已通知卖家已收货');
             getDeal(Number(uid));
           }
         })
-      }
-    })
-  }
-
-  const updateGood = (id: number,good: number) => {
-    updateDealGood(id, good).then((res) => {
-      if (res.data.code === 200) {
-        MessagePlugin.success('已确认收货');
-        getDeal(Number(uid));
       }
     })
   }
@@ -265,7 +275,7 @@ const Buy = memo(() => {
               {
                 item.payment !== 0 && item.reject === 0 && item.good !== 2 &&
                   <Button theme="primary" onClick={() => {
-                    updateGood(item.id, 2);
+                    updateGood(item.id, item.sid, 2, item.title);
                   }}>确认收货</Button>
               }
               {
@@ -300,7 +310,7 @@ const Buy = memo(() => {
                     <span style={{fontSize: 32, color: '#ff0000'}}>{item.price}</span>
                   </div>
                   <div>
-                    离交易结束还有: {getEndTime(nowTime, item.time, item.id)}
+                    离交易结束还有: {getEndTime(nowTime, item.time)}
                   </div>
                 </div>
               </ListItem>

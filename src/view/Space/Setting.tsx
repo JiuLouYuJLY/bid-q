@@ -16,7 +16,7 @@ const Setting = memo(() => {
   });
   const [files, setFiles] = useState([
     {
-      url: userInfo.avatar,
+      url: userInfo.avatar || 'https://ss0.bdstatic.com/70cFvXSh_Q1YnxGkpoWK1HF6hhy/it/u=2279408239,3825398873&fm=253&gp=0.jpg',
       status: 'success',
     },
   ]);

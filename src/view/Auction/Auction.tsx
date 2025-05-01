@@ -108,9 +108,7 @@ const Auction = memo(() => {
       });
       addDeal(Number(id), lotId, Number(sid)).then((res) => {
         if (res.data.code === 200) {
-          sendEmail(lotId).then((res) => {
-            console.log(res);
-          })
+          sendEmail(lotId);
           if (lotId === Number(uid)) {
             MessagePlugin.success('您已成功拍得该拍品,请前往个人中心查看');
           }
@@ -219,6 +217,19 @@ const Auction = memo(() => {
             }
           })
         }
+      } else {
+        checkUserIsUploader(Number(id), Number(uid)).then((res) => {
+          if (res.data.code === 403) {
+            MessagePlugin.warning(res.data.message);
+          } else {
+            createReservation(Number(uid), Number(id)).then((res) => {
+              if (res.data.code === 200) {
+                MessagePlugin.success('预约成功');
+                setIsReservation(true);
+              }
+            });
+          }
+        })
       }
     })
   }
