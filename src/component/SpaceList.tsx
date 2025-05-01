@@ -279,7 +279,7 @@ const SpaceList = (list: SpaceListProps) => {
                   <DatePicker
                     enableTimePicker
                     disableDate={{
-                      before: today.toISOString(),
+                      before: tomorrow.toISOString(),
                     }}
                     value={auctionInfo?.time}
                     onChange={(item) => setAuctionInfo({...auctionInfo, time: item as string})}

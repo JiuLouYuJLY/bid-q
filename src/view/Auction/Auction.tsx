@@ -9,9 +9,9 @@ import {
   addDeal,
   extendTime,
   getAuctionDetail, getDealDetail,
-  getNowAuctionPriceAndLot,
+  getNowAuctionPriceAndLot, noticeSellerNoSold,
   notifyAllUser,
-  sendEmail
+  sendEmail, updateAuctionTime
 } from "../../api/auction.ts";
 import {useParams} from "react-router-dom";
 import {
@@ -31,6 +31,7 @@ interface AuctionInfoProps {
   tags: string[];
   currentPrice: string;
   lotId: number;
+  uploadId: number;
 }
 
 const quickPrice = [1, 10, 100, 1000, 10000];
@@ -47,6 +48,7 @@ const Auction = memo(() => {
     tags: [],
     currentPrice: '',
     lotId: 0,
+    uploadId: 0
   })
   const [isReservation, setIsReservation] = useState(false);
   const [nowTime, setNowTime] = useState(new Date().getTime());
@@ -73,6 +75,7 @@ const Auction = memo(() => {
           tags: res.data.data.tags,
           lotId: res.data.data.auction.lotId,
           currentPrice: res.data.data.auction.currentPrice,
+          uploadId: res.data.data.auction.uploadId
         }
         setSid(res.data.data.auction.uploadId);
         setLotId(data.lotId);
@@ -108,7 +111,21 @@ const Auction = memo(() => {
       });
       addDeal(Number(id), lotId, Number(sid)).then((res) => {
         if (res.data.code === 200) {
-          sendEmail(lotId);
+          if (lotId) sendEmail(lotId);
+          else {
+            const today = new Date();
+            const tomorrow = new Date(today);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            updateAuctionTime(Number(id), tomorrow.toISOString()).then((res) => {
+              if (res.data.code === 200) {
+                noticeSellerNoSold(auctionInfo.uploadId, auctionInfo.title).then((res) => {
+                  if (res.data.code === 200) {
+                    MessagePlugin.success('已通知卖家商品流拍');
+                  }
+                })
+              }
+            })
+          }
           if (lotId === Number(uid)) {
             MessagePlugin.success('您已成功拍得该拍品,请前往个人中心查看');
           }

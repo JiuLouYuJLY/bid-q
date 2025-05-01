@@ -215,3 +215,14 @@ export const sendRejectNotice = (aid: number, uid: number) => {
     }
   });
 };
+
+export const noticeSellerNoSold = (uid: number, title: string) => {
+  return instance({
+    url: `/deal/notify-failed-auction`,
+    method: "post",
+    params: {
+      uid,
+      title
+    }
+  });
+};

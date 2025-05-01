@@ -222,7 +222,7 @@ const myUpload = memo(() => {
                     <DatePicker
                       enableTimePicker
                       disableDate={{
-                        before: today.toISOString(),
+                        before: tomorrow.toISOString(),
                       }}
                       value={formData.time}
                       onChange={(item) => setFormData({...formData, time: item as string})}
