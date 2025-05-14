@@ -62,6 +62,7 @@ const Auction = memo(() => {
   const [haveHistory, setHaveHistory] = useState(false);
   const [isEnd, setIsEnd] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [requesting, setRequesting] = useState(false);
   useTitle(`拍卖 - ${auctionInfo.title}`);
 
   useEffect(() => {
@@ -140,10 +141,11 @@ const Auction = memo(() => {
     const hour = Math.floor((endTime % (24 * 3600 * 1000)) / (3600 * 1000));
     const minute = Math.floor((endTime % (3600 * 1000)) / (60 * 1000));
     const second = Math.floor((endTime % (60 * 1000)) / 1000);
+
     if (loading) {
       setLoading(false);
     }
-    return `${day}天${hour}小时${minute}分钟${second}秒`;
+    return `${day}天${hour}小时${minute}分钟${second}.${Math.floor(endTime % 1000 / 100)}秒`;
   }, [auctionInfo.time]);
 
   useEffect(() => {
@@ -153,18 +155,25 @@ const Auction = memo(() => {
       }
       setNowTime(new Date().getTime());
       setEndTime(getEndTime(nowTime));
-      getNowAuctionPriceAndLot(Number(id)).then((res) => {
-        if (res.data.code === 200) {
-          setNowPrice(res.data.data.currentPrice);
-          getLotName(res.data.data.lotId);
-          setLotId(res.data.data.lotId);
-        }
-      })
-    }, 1000);
+      if (!requesting) {
+        setRequesting(true);
+        setTimeout(() => {
+          getNowAuctionPriceAndLot(Number(id)).then((res) => {
+            if (res.data.code === 200) {
+              setNowPrice(res.data.data.currentPrice);
+              getLotName(res.data.data.lotId);
+              setLotId(res.data.data.lotId);
+              setRequesting(false);
+            }
+          })
+        }, 500);
+      }
+    }, 100);
     return () => {
       clearInterval(timer);
     }
   }, [getEndTime, nowTime]);
+
 
   const bidTo = (price: number) => {
     const endTime = new Date(auctionInfo.time).getTime() - new Date().getTime();
